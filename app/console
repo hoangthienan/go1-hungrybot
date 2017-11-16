@@ -15,10 +15,13 @@ define('LOG_PATH', BASE_PATH . '/logs');
 use Symfony\Component\Console\Application;
 use Go1\Command\SpreadsheetsCommand;
 use Go1\Command\SpreadsheetsWriterCommand;
-
+use Go1\Command\BrowsershotCommand;
+use Go1\Command\SnappyCommand;
 
 $app = new Application('Hackathon', '1.0.0');
 
 $app->add(new SpreadsheetsCommand);
 $app->add(new SpreadsheetsWriterCommand());
+$app->add(new BrowsershotCommand());
+$app->add(new SnappyCommand());
 $app->run();
