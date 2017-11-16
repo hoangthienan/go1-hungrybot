@@ -8,4 +8,6 @@ return [
     'webhookUrl'    => 'https://my.com/webhook.php',
     'roomId'        => '',
     'spreadsheetId' => '',
+    'read_range'    => 'B2:C',
+    'write_range'   => 'D2:E',
 ];

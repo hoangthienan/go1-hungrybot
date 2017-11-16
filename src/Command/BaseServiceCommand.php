@@ -2,13 +2,28 @@
 
 namespace Go1\Command;
 
+use Go1\Services\GSheetService;
+use Google_Client;
+use Google_Service_Sheets;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class BaseServiceCommand extends Command
 {
-    protected $client;
+    /**
+     * @var GSheetService
+     */
+    protected $service;
+
+    protected $config;
+
+    public function __construct($name = null)
+    {
+        $this->config = include __DIR__ . './../../config.php';
+
+        parent::__construct($name);
+    }
 
     abstract protected function initService(InputInterface $input, OutputInterface $output);
 
@@ -29,22 +44,14 @@ abstract class BaseServiceCommand extends Command
                 throw new \Exception('This application must be run on the command line.');
             }
 
-            $this->getClient();
+            $this->service = new GSheetService($this->config);
 
             $this->initService($input, $output);
         }
         catch (\Exception $ex) {
             $output->writeln("<error> [" . $ex->getMessage() . "] </error>");
         }
-    }
 
-    /**
-     * Returns an authorized API client.
-     *
-     * @return Google_Client the authorized client object
-     */
-    protected function getClient()
-    {
-
+        return true;
     }
 }
