@@ -3,6 +3,10 @@ namespace Go1\Services;
 
 use Google_Client;
 use Google_Service_Sheets;
+use GorkaLaucirica\HipchatAPIv2Client\API\RoomAPI;
+use GorkaLaucirica\HipchatAPIv2Client\Auth\OAuth2;
+use GorkaLaucirica\HipchatAPIv2Client\Client;
+use GorkaLaucirica\HipchatAPIv2Client\Model\Message;
 
 class GSheetService
 {
@@ -112,6 +116,12 @@ class GSheetService
         return $values;
     }
 
+    protected function mb_str_pad( $input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
+    {
+        $diff = strlen( $input ) - mb_strlen( $input );
+        return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
+    }
+
     /**
      * @param array $data
      * ```json
@@ -157,5 +167,70 @@ class GSheetService
         $params = ['valueInputOption' => 'RAW'];
 
         return $service->spreadsheets_values->update($sheetId, $range, $body, $params);
+    }
+
+    public function getMenuRawText()
+    {
+        $menu = $this->getMenuData();
+
+        // send to hipchat
+        // $message = 'ready to get menu :D';
+        // <p><img src="https://i.imgur.com/XksvoId.jpg"/></p>
+        $html = '';
+
+        $topTitle = 'Today Menu';
+
+        $longestLineLen = 0;
+
+        foreach ($menu as $menuRow) {
+            $_len = mb_strlen($menuRow[1]);
+            if ($_len > $longestLineLen) {
+                $longestLineLen = $_len;
+            }
+        }
+
+        foreach ($menu as $menuRow) {
+            $line = ' #' . str_pad($menuRow[0], 4, ' ', STR_PAD_RIGHT);
+            $line .= $this->mb_str_pad($menuRow[1], $longestLineLen, ' ', STR_PAD_RIGHT) . ' ';
+            $line .= $menuRow[2];
+
+            $html .= $line . "\n";
+        }
+
+        $lineLen = $longestLineLen + 10;
+        $br = str_repeat('=', $lineLen);
+        $html = str_pad($topTitle, $lineLen, '=', STR_PAD_BOTH) . "\n" . $html;
+        $html .=  $br . "\n";
+
+        $html .= "Order from the menu
+/order #số
+/order #số [ghi chú khác]\n";
+        $html .= $br;
+
+        return $html;
+    }
+
+    public function sendMenu()
+    {
+        $html = $this->getMenuRawText();
+
+        $html = "<pre>{$html}</pre>";
+
+        $params = [
+            'id'             => $this->config['roomId'],
+            'from'           => '',
+            'message'        => $html,
+            'notify'         => true,
+            'color'          => 'green',
+            'message_format' => 'html',
+            'date'           => null,
+        ];
+        $messageObj = new Message($params);
+
+        $authToken = $this->config['authToken'];
+        $auth = new OAuth2($authToken);
+        $client = new Client($auth);
+        $roomApi = new RoomAPI($client);
+        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
     }
 }
