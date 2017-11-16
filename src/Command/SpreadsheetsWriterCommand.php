@@ -7,15 +7,14 @@ use Google_Service_Sheets_Spreadsheet;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SpreadsheetsCommand extends BaseServiceCommand
+class SpreadsheetsWriterCommand extends BaseServiceCommand
 {
-
     protected function configure()
     {
         parent::configure();
         $this
-            ->setName('go1:sheet')
-            ->setDescription('Executes')
+            ->setName('go1:sheet:write')
+            ->setDescription('Testing write')
             ->setHelp(
                 ''
             );
@@ -23,9 +22,13 @@ class SpreadsheetsCommand extends BaseServiceCommand
 
     protected function initService(InputInterface $input, OutputInterface $output)
     {
-        $menu = $this->service->getMenuData();
-        foreach ($menu as $row) {
-            $output->writeln(sprintf("%s \t %s \t %s", $row[0], $row[1], $row[2]));
-        }
+        $data = [
+            [1, ['Phuong Huynh', 'Vu Nguyen', 'Nguyen Ng']],
+            [4, ['An Hoang']],
+            [7, ['Chau Pham']],
+        ];
+        $result = $this->service->writeData($data);
+
+        $output->writeln("<info>Updated rows: {$result->updatedRows}</info>");
     }
 }
