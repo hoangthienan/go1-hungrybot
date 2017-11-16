@@ -26,6 +26,7 @@ class SpreadsheetsWriterCommand extends BaseServiceCommand
             [1, ['Phuong Huynh', 'Vu Nguyen', 'Nguyen Ng']],
             [4, ['An Hoang']],
             [7, ['Chau Pham']],
+            [12, ['Test User 1', 'Test User 2', 'Test User 3']],
         ];
         $result = $this->service->writeData($data);
 
