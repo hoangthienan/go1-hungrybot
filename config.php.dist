@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Copy to "config.php" and set you values here:
+ */
+return [
+    'authToken'     => '', //You can get one here: https://yourCompany.hipchat.com/rooms/tokens/roomId, https://yourCompany.hipchat.com/account/api
+    'webhookUrl'    => 'https://my.com/webhook.php',
+    'roomId'        => '',
+    'spreadsheetId' => '',
+];
