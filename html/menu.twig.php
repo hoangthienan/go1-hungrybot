@@ -177,7 +177,7 @@
                 <p class="res-number">+84 2835 146 056</p>
                 <p>
                 <div class="res-date-time"></div>
-                
+
                     <code>
                         /order #số <br/>
                         /order #số [ghi chú khác]

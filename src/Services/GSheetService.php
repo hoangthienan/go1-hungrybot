@@ -331,10 +331,6 @@ class GSheetService
         $this->takeMenuShot();
         $html = "<p><img src='{$this->config['base_url']}/images/menu2.jpg'></p>";
 
-        $html .= "<pre>Order from the menu
-/order #số
-/order #số [ghi chú khác]\n</pre>";
-
         $params = [
             'id'             => $this->config['roomId'],
             'from'           => '',
