@@ -133,6 +133,16 @@
         .col-sm-1 {
             float: left;
         }
+
+        code {
+            padding: 2px 4px;
+            /* font-size: 90%; */
+            color: #ffffff;
+            /* background-color: #f9f2f4; */
+            background: none;
+            border-radius: 4px;
+            text-shadow: 0 0 1px #0c0c0c;
+        }
     </style>
 </head>
 <body>
@@ -165,6 +175,14 @@
                 <?php endforeach; ?>
                 <h3 class="res-title">Reservation Numbers</h3>
                 <p class="res-number">+84 2835 146 056</p>
+                <p>
+                <div class="res-date-time"></div>
+                
+                    <code>
+                        /order #số <br/>
+                        /order #số [ghi chú khác]
+                    </code>
+                </p>
             </div>
         </div>
     </div>
