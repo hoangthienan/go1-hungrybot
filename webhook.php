@@ -31,4 +31,7 @@ switch ($body->webhook_id) {
     case $config['wh_menu_id']:
         $service->sendMenu();
         break;
+    case $config['wh_order_id']:
+        $service->processOrder($body);
+        break;
 }

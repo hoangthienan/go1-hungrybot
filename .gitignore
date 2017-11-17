@@ -9,3 +9,4 @@ vendor
 config.php
 index.php
 client_secret.json
+sheets.googleapis.com-php_go1-spreadsheets.json

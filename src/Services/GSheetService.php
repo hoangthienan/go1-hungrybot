@@ -323,4 +323,59 @@ class GSheetService
         $roomApi = new RoomAPI($client);
         $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
     }
+
+    public function sendRoomMessage($text)
+    {
+        $params = [
+            'id'             => $this->config['roomId'],
+            'from'           => '',
+            'message'        => $text,
+            'notify'         => true,
+            'color'          => 'green',
+            'message_format' => 'text',
+            'date'           => null,
+        ];
+        $messageObj = new Message($params);
+
+        $authToken = $this->config['authToken'];
+        $auth = new OAuth2($authToken);
+        $client = new Client($auth);
+        $roomApi = new RoomAPI($client);
+        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
+    }
+
+    public function processOrder($hookData)
+    {
+        $message = $hookData->item->message->message;
+        $mention = $hookData->item->message->from->mention_name;
+
+        // remove space
+        $message = preg_replace('/\s+/', ' ', $message);
+
+        // get id menu
+        if (preg_match('/\/order\s[@#](\d+)\s?/', $message, $match)) {
+            $id = $match[1];
+
+            $menu = $this->getMenuData();
+            $found = false;
+            foreach ($menu as $item) {
+                if ($item[0] == $id) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if ($found) {
+                $this->addOrder($hookData->item->message->from->id, $id, $hookData->item->message->from->name);
+                $this->sendRoomMessage("@{$mention} success.");
+            }
+            else {
+                $this->sendRoomMessage("@{$mention} order '{$id}' not found.");
+            }
+        }
+        else {
+            // not found ID
+            $this->sendRoomMessage("@{$mention} invalid.");
+        }
+    }
 }
