@@ -382,7 +382,7 @@ class GSheetService
         $message = preg_replace('/\s+/', ' ', $message);
 
         // get id menu
-        if (preg_match('/\/order\s[@#](\d+)\s?/', $message, $match)) {
+        if (preg_match('/\/order\s[@#](\d+)(\s?.+)/', $message, $match)) {
             $id = $match[1];
 
             $menu = $this->getMenuData();
@@ -395,7 +395,12 @@ class GSheetService
             }
 
             if ($found) {
-                $this->addOrder($hookData->item->message->from->id, $id, $hookData->item->message->from->name);
+                $name = $hookData->item->message->from->name;
+                if (count($match) > 2) {
+                    $name .=': ' . $match[2];
+                }
+
+                $this->addOrder($hookData->item->message->from->id, $id, $name);
                 $this->sendRoomMessage("@{$mention} success.");
             }
             else {
