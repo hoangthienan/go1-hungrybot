@@ -22,6 +22,7 @@ $log->pushHandler(new StreamHandler($logFile, Logger::INFO));
 
 $input = file_get_contents('php://input');
 
+$log->info($input);
 $body = json_decode($input);
 
 $service = new \Go1\Services\GSheetService($config);

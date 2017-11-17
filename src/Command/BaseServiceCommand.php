@@ -49,6 +49,8 @@ abstract class BaseServiceCommand extends Command
             $this->initService($input, $output);
         }
         catch (\Exception $ex) {
+
+            var_dump($ex);
             $output->writeln("<error> [" . $ex->getMessage() . "] </error>");
         }
 
