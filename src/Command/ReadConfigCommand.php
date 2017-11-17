@@ -35,9 +35,8 @@ class ReadConfigCommand extends BaseServiceCommand
     protected function initService(InputInterface $input, OutputInterface $output)
     {
         $sheetId = $this->config['spreadsheetId'];
-        $readRange = $this->config['read_range'];
 
-        $service = new Google_Service_Sheets($this->getClient());
+        $service = new Google_Service_Sheets($this->service->getClient());
 
         // read meta
         $sheets = $service->spreadsheets->get($sheetId)->getSheets();
@@ -48,8 +47,10 @@ class ReadConfigCommand extends BaseServiceCommand
         $response = $service->spreadsheets_values->get($sheetId, $range);
         $values = $response->getValues();
 
-        file_put_contents($this->appConfigPath, json_encode($values));
+        if (count($values) > 0) {
+            var_dump($values[0]);
 
-        return $values;
+            file_put_contents($this->appConfigPath, json_encode($values));
+        }
     }
 }

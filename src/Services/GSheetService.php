@@ -55,7 +55,7 @@ class GSheetService
      *
      * @return Google_Client the authorized client object
      */
-    protected function getClient()
+    public function getClient()
     {
         if (!$this->client) {
             $this->client = new Google_Client();
@@ -397,7 +397,7 @@ class GSheetService
                 }
 
                 $this->addOrder($hookData->item->message->from->id, $id, $name);
-                $this->sendRoomMessage("@{$mention} success.");
+                $this->sendRoomMessage("@{$mention} You has been ordered [{$id}] successfully.");
             }
             else {
                 $this->sendRoomMessage("@{$mention} order '{$id}' not found.");
@@ -405,7 +405,7 @@ class GSheetService
         }
         else {
             // not found ID
-            $this->sendRoomMessage("@{$mention} invalid.");
+            $this->sendRoomMessage("@{$mention} Invalid input, please try again.");
         }
     }
 
