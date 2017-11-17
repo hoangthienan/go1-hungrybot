@@ -25,12 +25,27 @@ class GSheetService
 
     protected $orderFile;
 
+    protected $orderConfig;
+
     public function __construct($config)
     {
         $this->config = $config;
 
         $this->cacheFile = ROOT_DIR . '/cache/menu.json';
         $this->orderFile = ROOT_DIR . '/cache/order.json';
+
+        $f = ROOT_DIR . '/cache/config.json';
+        if (file_exists($f)) {
+            $this->orderConfig = json_decode(file_get_contents($f), true);
+
+        }
+
+        if (!isset($this->orderConfig['started']) || !isset($this->orderConfig['finished'])) {
+            $this->orderConfig = [
+                'started'  => false,
+                'finished' => false,
+            ];
+        }
     }
 
     /**
@@ -181,7 +196,7 @@ class GSheetService
             }
 
             if (!$found) {
-                $data[] = [$item[1], [ $item[2] ]];
+                $data[] = [$item[1], [$item[2]]];
             }
         }
 
@@ -327,9 +342,14 @@ class GSheetService
 
     public function sendMenuImage()
     {
-        $this->getMenuData(true);
-        $this->takeMenuShot();
-        $html = "<p><img src='{$this->config['base_url']}/images/menu2.jpg'></p>";
+        if ($this->orderConfig['started']) {
+            $this->getMenuData(true);
+            $this->takeMenuShot();
+            $html = "<p><img src='{$this->config['base_url']}/images/menu2.jpg'></p>";
+
+        } else {
+            $html = 'Event has not yet started.';
+        }
 
         $params = [
             'id'             => $this->config['roomId'],
@@ -371,6 +391,20 @@ class GSheetService
 
     public function processOrder($hookData)
     {
+
+        $html = false;
+        if (!$this->orderConfig['started']) {
+            $html = 'Event has not yet started.';
+        }
+        elseif ($this->orderConfig['finished']) {
+            $html = 'Order timeout.';
+        }
+
+        if ($html) {
+            $this->sendRoomMessage($html);
+            return;
+        }
+
         $message = $hookData->item->message->message;
         $mention = $hookData->item->message->from->mention_name;
 
@@ -393,7 +427,7 @@ class GSheetService
             if ($found) {
                 $name = $hookData->item->message->from->name;
                 if (count($match) > 2) {
-                    $name .=': ' . $match[2];
+                    $name .= ': ' . $match[2];
                 }
 
                 $this->addOrder($hookData->item->message->from->id, $id, $name);
@@ -413,8 +447,8 @@ class GSheetService
     {
         $chrome = new Chrome($this->config['template_url'], $this->config['chrome_path']);
         $chrome->setArgument('--no-sandbox', '');
-        $chrome->setOutputDirectory(ROOT_DIR.'/images');
+        $chrome->setOutputDirectory(ROOT_DIR . '/images');
         $chrome->setWindowSize(540, 640);
-        $chrome->getScreenShot(ROOT_DIR.'/images/menu2.jpg');
+        $chrome->getScreenShot(ROOT_DIR . '/images/menu2.jpg');
     }
 }

@@ -47,10 +47,75 @@ class ReadConfigCommand extends BaseServiceCommand
         $response = $service->spreadsheets_values->get($sheetId, $range);
         $values = $response->getValues();
 
-        if (count($values) > 0) {
-            var_dump($values[0]);
+        $startHour = 9;
+        $startMinute = 30;
+        $endHour = 10;
+        $endMinute = 30;
+        $config = [
+            'started' => false,
+            'finished' => false,
+        ];
 
-            file_put_contents($this->appConfigPath, json_encode($values));
+        if (file_exists($this->appConfigPath)) {
+            $tmpconfig = json_decode(file_get_contents($this->appConfigPath), true);
+
+            if (isset($tmpconfig['started']) && isset($tmpconfig['finished'])) {
+                $config = $tmpconfig;
+            }
+        }
+
+        if (count($values) > 0) {
+//            var_dump($values[0]);
+            $startTimeParts = explode(':', $values[0][0]);
+            $endTimeParts = explode(':', $values[0][1]);
+
+            $isValid = count($startTimeParts) >= 2 && intval($startTimeParts[0]) > 0 && intval($startTimeParts[0]) < 60
+                && intval($startTimeParts[1]) > 0 && intval($startTimeParts[1]) < 60
+                && count($endTimeParts) >= 2
+                && intval($endTimeParts[0]) > 0 && intval($endTimeParts[0]) < 60
+                && intval($endTimeParts[1]) > 0 && intval($endTimeParts[1]) < 60;
+
+            if ($isValid) {
+                $startHour = intval($startTimeParts[0]);
+                $startMinute = intval($startTimeParts[1]);
+                $endHour = intval($endTimeParts[0]);
+                $endMinute = intval($endTimeParts[1]);
+
+                $now = new \DateTime();
+
+                $startTime = new \DateTime();
+                $startTime->setTime($startHour, $startMinute);
+
+                $endTime = new \DateTime();
+                $endTime->setTime($endHour, $endMinute);
+
+
+                if ($startTime > $now && !$config['started']) {
+                    $config['started'] = true;
+                    // call start event
+
+                    $this->service->sendRoomMessage('@here Start order, please');
+                    $this->service->sendMenuImage();
+                }
+
+
+                if ($endTime < $now && !$config['finished']) {
+                    $config['finished'] = true;
+                    // call end event
+                    $this->service->sendRoomMessage("@here Order timeout.");
+                }
+
+                file_put_contents($this->appConfigPath, json_encode($config));
+            }
+            else {
+                $writeValues = [['Invalid setup']];
+                $body = new \Google_Service_Sheets_ValueRange(['values' => $writeValues]);
+                $params = ['valueInputOption' => 'RAW'];
+
+                return $service->spreadsheets_values->update($sheetId, "{$firstSheet->getProperties()->title}!I2:I3", $body, $params);
+            }
+
+//            file_put_contents($this->appConfigPath, json_encode($values[0]));
         }
     }
 }
