@@ -2,13 +2,18 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/html');
-$twig = new \Twig\Environment($loader, [
-    'cache' => __DIR__ . '/cache',
-]);
-
-$template = $twig->load('01.html');
 $config = require('./config.php');
 $service = new \Go1\Services\GSheetService($config);
-//$data = $service->getMenuData();
-echo $template->render();
+$data = $service->getMenuData();
+//
+//$data = [
+//    [1, 'Heo quay kho trứng', '30'],
+//    [2, 'Đậu hủ kho nấm rơm', '30'],
+//    [3, 'Đậu hủ kho nấm rơm', '30'],
+//    [4, 'Đậu hủ kho nấm rơm', '30'],
+//    [5, 'Đậu hủ kho nấm rơm', '30'],
+//    [6, 'Đậu hủ kho nấm rơm', '30'],
+//];
+
+include './html/menu.twig.php';
+

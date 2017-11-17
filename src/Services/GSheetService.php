@@ -2,6 +2,7 @@
 
 namespace Go1\Services;
 
+use dawood\phpChrome\Chrome;
 use Google_Client;
 use Google_Service_Sheets;
 use GorkaLaucirica\HipchatAPIv2Client\API\RoomAPI;
@@ -324,6 +325,30 @@ class GSheetService
         $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
     }
 
+    public function sendMenuImage()
+    {
+        $this->getMenuData(true);
+        $this->takeMenuShot();
+        $html = "<p><img src='{$this->config['base_url']}/images/menu2.jpg'></p>";
+
+        $params = [
+            'id'             => $this->config['roomId'],
+            'from'           => '',
+            'message'        => $html,
+            'notify'         => true,
+            'color'          => 'green',
+            'message_format' => 'html',
+            'date'           => null,
+        ];
+        $messageObj = new Message($params);
+
+        $authToken = $this->config['authToken'];
+        $auth = new OAuth2($authToken);
+        $client = new Client($auth);
+        $roomApi = new RoomAPI($client);
+        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
+    }
+
     public function sendRoomMessage($text)
     {
         $params = [
@@ -353,7 +378,7 @@ class GSheetService
         $message = preg_replace('/\s+/', ' ', $message);
 
         // get id menu
-        if (preg_match('/\/order\s[@#](\d+)\s?/', $message, $match)) {
+        if (preg_match('/\/order\s[@#](\d+)(\s?.+)/', $message, $match)) {
             $id = $match[1];
 
             $menu = $this->getMenuData();
@@ -366,7 +391,12 @@ class GSheetService
             }
 
             if ($found) {
-                $this->addOrder($hookData->item->message->from->id, $id, $hookData->item->message->from->name);
+                $name = $hookData->item->message->from->name;
+                if (count($match) > 2) {
+                    $name .=': ' . $match[2];
+                }
+
+                $this->addOrder($hookData->item->message->from->id, $id, $name);
                 $this->sendRoomMessage("@{$mention} success.");
             }
             else {
@@ -377,5 +407,14 @@ class GSheetService
             // not found ID
             $this->sendRoomMessage("@{$mention} invalid.");
         }
+    }
+
+    public function takeMenuShot()
+    {
+        $chrome = new Chrome($this->config['template_url'], $this->config['chrome_path']);
+        $chrome->setArgument('--no-sandbox', '');
+        $chrome->setOutputDirectory(ROOT_DIR.'/images');
+        $chrome->setWindowSize(540, 640);
+        $chrome->getScreenShot(ROOT_DIR.'/images/menu2.jpg');
     }
 }
