@@ -378,7 +378,7 @@ class GSheetService
         $message = preg_replace('/\s+/', ' ', $message);
 
         // get id menu
-        if (preg_match('/\/order\s[@#](\d+)(\s?.+)/', $message, $match)) {
+        if (preg_match('/\/order\s[@#](\d+)(\s?.+)?/', $message, $match)) {
             $id = $match[1];
 
             $menu = $this->getMenuData();
