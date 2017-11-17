@@ -29,7 +29,7 @@ $service = new \Go1\Services\GSheetService($config);
 
 switch ($body->webhook_id) {
     case $config['wh_menu_id']:
-        $service->sendMenu();
+        $service->sendMenuImage();
         break;
     case $config['wh_order_id']:
         $service->processOrder($body);

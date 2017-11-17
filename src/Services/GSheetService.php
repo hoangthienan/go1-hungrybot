@@ -2,6 +2,7 @@
 
 namespace Go1\Services;
 
+use dawood\phpChrome\Chrome;
 use Google_Client;
 use Google_Service_Sheets;
 use GorkaLaucirica\HipchatAPIv2Client\API\RoomAPI;
@@ -324,6 +325,34 @@ class GSheetService
         $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
     }
 
+    public function sendMenuImage()
+    {
+        $this->getMenuData(true);
+        $this->takeMenuShot();
+        $html = "<p><img src='{$this->config['base_url']}/images/menu2.jpg'></p>";
+
+        $html .= "<pre>Order from the menu
+/order #số
+/order #số [ghi chú khác]\n</pre>";
+
+        $params = [
+            'id'             => $this->config['roomId'],
+            'from'           => '',
+            'message'        => $html,
+            'notify'         => true,
+            'color'          => 'green',
+            'message_format' => 'html',
+            'date'           => null,
+        ];
+        $messageObj = new Message($params);
+
+        $authToken = $this->config['authToken'];
+        $auth = new OAuth2($authToken);
+        $client = new Client($auth);
+        $roomApi = new RoomAPI($client);
+        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
+    }
+
     public function sendRoomMessage($text)
     {
         $params = [
@@ -377,5 +406,14 @@ class GSheetService
             // not found ID
             $this->sendRoomMessage("@{$mention} invalid.");
         }
+    }
+
+    public function takeMenuShot()
+    {
+        $chrome = new Chrome($this->config['template_url'], $this->config['chrome_path']);
+        $chrome->setArgument('--no-sandbox', '');
+        $chrome->setOutputDirectory(ROOT_DIR.'/images');
+        $chrome->setWindowSize(640, 800);
+        $chrome->getScreenShot(ROOT_DIR.'/images/menu2.jpg');
     }
 }
