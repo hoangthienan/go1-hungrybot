@@ -129,17 +129,21 @@
         .ft-fixed-area {
             height: 100%;
         }
+
+        .col-sm-1 {
+            float: left;
+        }
     </style>
 </head>
 <body>
-<div class="col-lg-4 wrapper">
+<div class="col-lg-4 wrapper container">
     <div class="ft-fixed-area">
         <div class="reservation-box">
             <div class="reservation-wrap">
                 <h3 class="res-title top-title">Special Menu</h3>
                 <?php foreach ($data as $item): ?>
                     <div class="res-date-time">
-                        <div class="res-date-time-item">
+                        <div class="res-date-time-item row">
                             <div class="col-sm-1">
                                 #<?= $item[0] ?>
                             </div>
@@ -156,7 +160,6 @@
                                     <p><?= $item[2] ?>,000 VND</p>
                                 </div>
                             </div>
-                            <div class="clearfix"></div>
                         </div>
                     </div>
                 <?php endforeach; ?>

@@ -413,7 +413,7 @@ class GSheetService
         $chrome = new Chrome($this->config['template_url'], $this->config['chrome_path']);
         $chrome->setArgument('--no-sandbox', '');
         $chrome->setOutputDirectory(ROOT_DIR.'/images');
-        $chrome->setWindowSize(640, 800);
+        $chrome->setWindowSize(540, 640);
         $chrome->getScreenShot(ROOT_DIR.'/images/menu2.jpg');
     }
 }
