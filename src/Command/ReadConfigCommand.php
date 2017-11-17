@@ -96,6 +96,9 @@ class ReadConfigCommand extends BaseServiceCommand
 
                     file_put_contents($this->appConfigPath, json_encode($config));
 
+                    // reset order
+                    $this->service->reset();
+
                     $this->service->sendRoomMessage('@here Start order, please');
                     $this->service->sendMenuImage(false);
                 }
