@@ -24,4 +24,5 @@ $app->add(new SpreadsheetsCommand);
 $app->add(new SpreadsheetsWriterCommand());
 $app->add(new BrowsershotCommand());
 $app->add(new SnappyCommand());
+$app->add(new \Go1\Command\ReadConfigCommand());
 $app->run();
