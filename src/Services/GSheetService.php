@@ -340,13 +340,12 @@ class GSheetService
         $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
     }
 
-    public function sendMenuImage()
+    public function sendMenuImage($checkTime = true)
     {
-        if ($this->orderConfig['started']) {
+        if ($this->orderConfig['started'] || !$checkTime) {
             $this->getMenuData(true);
             $this->takeMenuShot();
             $html = "<p><a href='{$this->config['base_url']}/images/menu2.jpg'><img src='{$this->config['base_url']}/images/menu2.jpg'></a></p>";
-
         } else {
             $html = 'Event has not yet started.';
         }

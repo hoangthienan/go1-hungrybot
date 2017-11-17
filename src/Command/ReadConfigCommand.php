@@ -90,12 +90,17 @@ class ReadConfigCommand extends BaseServiceCommand
                 $endTime->setTime($endHour, $endMinute);
 
 
-                if ($startTime > $now && !$config['started']) {
+                if ($startTime < $now && !$config['started']) {
                     $config['started'] = true;
                     // call start event
 
+                    file_put_contents($this->appConfigPath, json_encode($config));
+
+                    // reset order
+                    $this->service->reset();
+
                     $this->service->sendRoomMessage('@here Start order, please');
-                    $this->service->sendMenuImage();
+                    $this->service->sendMenuImage(false);
                 }
 
 
