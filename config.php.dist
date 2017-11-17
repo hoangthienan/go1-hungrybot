@@ -1,5 +1,23 @@
 <?php
 
+
+defined('APPLICATION_NAME') || define('APPLICATION_NAME', 'GO1 - Google Sheets API PHP');
+defined('CREDENTIALS_PATH') || define('CREDENTIALS_PATH', '~/.credentials/sheets.googleapis.com-php_go1-spreadsheets.json');
+defined('CLIENT_SECRET_PATH') || define('CLIENT_SECRET_PATH', __DIR__ . '/client_secret.json');
+// If modifying these scopes, delete your previously saved credentials
+// at ~/.credentials/sheets.googleapis.com-php_go1-spreadsheets.json
+defined('SCOPES') || define(
+    'SCOPES',
+    implode(
+        ' ',
+        [
+            Google_Service_Sheets::SPREADSHEETS,
+        ]
+    )
+);
+
+defined('ROOT_DIR') || define('ROOT_DIR', __DIR__);
+
 /**
  * Copy to "config.php" and set you values here:
  */

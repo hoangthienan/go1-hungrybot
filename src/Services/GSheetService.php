@@ -1,4 +1,5 @@
 <?php
+
 namespace Go1\Services;
 
 use Google_Client;
@@ -17,9 +18,18 @@ class GSheetService
 
     protected $client;
 
+    protected $cacheFile;
+
+    protected $cacheTimeout = 60;
+
+    protected $orderFile;
+
     public function __construct($config)
     {
         $this->config = $config;
+
+        $this->cacheFile = ROOT_DIR . '/cache/menu.json';
+        $this->orderFile = ROOT_DIR . '/cache/order.json';
     }
 
     /**
@@ -88,17 +98,22 @@ class GSheetService
     }
 
     /**
-     * @return array
+     * @param bool $useCache
+     * @return array ```json
      *
      * ```json
      * [
-     *    [1, "Ca Kho",    25],
-     *    [2, "Com Trang", 25],
+     * [1, "Ca Kho",    25],
+     * [2, "Com Trang", 25],
      * ]
      * ```
      */
-    public function getMenuData()
+    public function getMenuData($useCache = true)
     {
+        if ($useCache && file_exists($this->cacheFile) && filemtime($this->cacheFile) > time() - $this->cacheTimeout) {
+            return json_decode(file_get_contents($this->cacheFile), true);
+        }
+
         $sheetId = $this->config['spreadsheetId'];
         $readRange = $this->config['read_range'];
 
@@ -113,14 +128,89 @@ class GSheetService
         $response = $service->spreadsheets_values->get($sheetId, $range);
         $values = $response->getValues();
 
+        file_put_contents($this->cacheFile, json_encode($values));
+
         return $values;
     }
 
-    protected function mb_str_pad( $input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
+    protected function mb_str_pad($input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
     {
-        $diff = strlen( $input ) - mb_strlen( $input );
-        return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
+        $diff = strlen($input) - mb_strlen($input);
+
+        return str_pad($input, $pad_length + $diff, $pad_string, $pad_type);
     }
+
+    /**
+     * @return array|mixed
+     *
+     * [
+     *   [fromId, itemId, name]
+     *
+     * ]
+     */
+    public function currentOrder()
+    {
+        $order = [];
+        if (file_exists($this->orderFile)) {
+            $order = json_decode(file_get_contents($this->orderFile), true);
+
+            // fix empty order file
+            if (!is_array($order)) {
+                $order = [];
+            }
+        }
+
+        return $order;
+    }
+
+    protected function writeOrder($order)
+    {
+        file_put_contents($this->orderFile, json_encode($order));
+
+        // collect value to write sheet
+        $data = [];
+        foreach ($order as $item) {
+            $found = false;
+            foreach ($data as &$row) {
+                if ($row[0] == $item[1]) {
+                    $found = true;
+                    $row[1][] = $item[2];
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $data[] = [$item[1], [ $item[2] ]];
+            }
+        }
+
+        $this->writeData($data);
+    }
+
+    public function addOrder($fromId, $itemId, $name)
+    {
+        $order = $this->currentOrder();
+        $isUpdated = false;
+        foreach ($order as &$row) {
+            if ($row[0] == $fromId) {
+                $isUpdated = true;
+                $row[1] = $itemId;
+                $row[2] = $name;
+            }
+        }
+
+        if (!$isUpdated) {
+            $order[] = [$fromId, $itemId, $name];
+        }
+
+        $this->writeOrder($order);
+    }
+
+    public function reset()
+    {
+        @unlink($this->orderFile);
+    }
+
 
     /**
      * @param array $data
@@ -200,7 +290,7 @@ class GSheetService
         $lineLen = $longestLineLen + 10;
         $br = str_repeat('=', $lineLen);
         $html = str_pad($topTitle, $lineLen, '=', STR_PAD_BOTH) . "\n" . $html;
-        $html .=  $br . "\n";
+        $html .= $br . "\n";
 
         $html .= "Order from the menu
 /order #số
@@ -232,5 +322,60 @@ class GSheetService
         $client = new Client($auth);
         $roomApi = new RoomAPI($client);
         $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
+    }
+
+    public function sendRoomMessage($text)
+    {
+        $params = [
+            'id'             => $this->config['roomId'],
+            'from'           => '',
+            'message'        => $text,
+            'notify'         => true,
+            'color'          => 'green',
+            'message_format' => 'text',
+            'date'           => null,
+        ];
+        $messageObj = new Message($params);
+
+        $authToken = $this->config['authToken'];
+        $auth = new OAuth2($authToken);
+        $client = new Client($auth);
+        $roomApi = new RoomAPI($client);
+        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
+    }
+
+    public function processOrder($hookData)
+    {
+        $message = $hookData->item->message->message;
+        $mention = $hookData->item->message->from->mention_name;
+
+        // remove space
+        $message = preg_replace('/\s+/', ' ', $message);
+
+        // get id menu
+        if (preg_match('/\/order\s[@#](\d+)\s?/', $message, $match)) {
+            $id = $match[1];
+
+            $menu = $this->getMenuData();
+            $found = false;
+            foreach ($menu as $item) {
+                if ($item[0] == $id) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if ($found) {
+                $this->addOrder($hookData->item->message->from->id, $id, $hookData->item->message->from->name);
+                $this->sendRoomMessage("@{$mention} success.");
+            }
+            else {
+                $this->sendRoomMessage("@{$mention} order '{$id}' not found.");
+            }
+        }
+        else {
+            // not found ID
+            $this->sendRoomMessage("@{$mention} invalid.");
+        }
     }
 }

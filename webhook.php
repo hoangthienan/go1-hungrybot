@@ -22,6 +22,7 @@ $log->pushHandler(new StreamHandler($logFile, Logger::INFO));
 
 $input = file_get_contents('php://input');
 
+$log->info($input);
 $body = json_decode($input);
 
 $service = new \Go1\Services\GSheetService($config);
@@ -29,5 +30,8 @@ $service = new \Go1\Services\GSheetService($config);
 switch ($body->webhook_id) {
     case $config['wh_menu_id']:
         $service->sendMenu();
+        break;
+    case $config['wh_order_id']:
+        $service->processOrder($body);
         break;
 }

@@ -25,25 +25,28 @@ class SpreadsheetsCommand extends BaseServiceCommand
 
     protected function initService(InputInterface $input, OutputInterface $output)
     {
-        $html = $this->service->getMenuRawText();
+//        $html = $this->service->getMenuRawText();
+//
+//        $html = "<pre>{$html}</pre>";
+//
+//        $params = [
+//            'id'             => $this->config['roomId'],
+//            'from'           => '',
+//            'message'        => $html,
+//            'notify'         => true,
+//            'color'          => 'green',
+//            'message_format' => 'html',
+//            'date'           => null,
+//        ];
+//        $messageObj = new Message($params);
+//
+//        $authToken = $this->config['authToken'];
+//        $auth = new OAuth2($authToken);
+//        $client = new Client($auth);
+//        $roomApi = new RoomAPI($client);
+//        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
 
-        $html = "<pre>{$html}</pre>";
-
-        $params = [
-            'id'             => $this->config['roomId'],
-            'from'           => '',
-            'message'        => $html,
-            'notify'         => true,
-            'color'          => 'green',
-            'message_format' => 'html',
-            'date'           => null,
-        ];
-        $messageObj = new Message($params);
-
-        $authToken = $this->config['authToken'];
-        $auth = new OAuth2($authToken);
-        $client = new Client($auth);
-        $roomApi = new RoomAPI($client);
-        $roomApi->sendRoomNotification($this->config['roomId'], $messageObj);
+        $data = $this->service->getMenuData();
+        print_r($data);
     }
 }
